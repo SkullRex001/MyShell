@@ -6,8 +6,29 @@
 #include <cstdlib>
 #include <filesystem>
 #include <unistd.h>
-
+#include <ctime>
+#include <cstdlib>
+#include <map>
+#include <cstring>
 namespace fs = std::filesystem;
+
+
+
+std::map<std::string , std::string> printPath(const std::string &allPath){
+  std::map<std::string , std::string> pathMap;
+  char* path_copy = strdup(allPath.c_str());
+  char* path = strtok(path_copy , ":");
+  while (path!=NULL) {
+    if(fs::exists(path) && fs::is_directory(path))
+      for(auto &entry : std::filesystem::directory_iterator(path))
+        if(access(entry.path().c_str(), X_OK) == 0)
+          pathMap.insert({entry.path().filename() , entry.path()});
+    path = strtok(NULL , ":");
+  }
+  free(path_copy);
+  return pathMap;
+}
+
 
 std::vector<std::string> extractPath(std::string str)
 
@@ -68,6 +89,7 @@ int main()
 
 {
 
+  std::srand(std::time(0));
   // Flush after every std::cout / std:cerr
 
   std::cout << std::unitbuf;
@@ -76,9 +98,10 @@ int main()
 
   std::string path = std::getenv("PATH");
 
-  std::vector<std::string> allPath = extractPath(path);
-  std::set<std::string> listOfAllExecutable = setOfExecutable(allPath);
+//  std::vector<std::string> allPath = extractPath(path);
+//  std::set<std::string> listOfAllExecutable = setOfExecutable(allPath);
 
+  std::map<std::string , std::string> pathMap = printPath(path);
   std::set<std::string> commands;
 
   commands.insert({"echo", "exit", "type"});
@@ -114,15 +137,16 @@ int main()
 
     {
 
-      std::string str = input.substr(5);
+      std::string str = input.substr(5); //white space may cause bugs //will fix later
+      auto it = pathMap.find(str);
       if (commands.find(str) != commands.end())
       {
         std::cout << str << " is a shell builtin" << "\n";
       }
-      else if (listOfAllExecutable.find(str) != listOfAllExecutable.end())
+      else if (it != pathMap.end())
       {
 
-        std::string res = execuitableExist(allPath, str);
+        std::string res = it->second;
         std::cout << str << " is " << res << '\n';
       }
       else
@@ -133,6 +157,11 @@ int main()
     else if (words[0] == "echo")
 
       std::cout << input.substr(5) << "\n";
+
+    else if ((words.size() != 0) && (pathMap.find(words[0]) != pathMap.end()))
+    {
+        std::system(input.c_str());
+    }
 
     else
 
