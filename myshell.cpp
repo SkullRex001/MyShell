@@ -85,6 +85,21 @@ std::set<std::string> setOfExecutable(std::vector<std::string> allPath)
   return allexecutable;
 }
 
+
+std::string extractArgumentString(std::string &inputString){
+  std::stringstream ss(inputString);
+  std::string cmd , arg;
+  ss>>cmd;
+  std::getline(ss , arg);
+ size_t start = arg.find_first_not_of(" \t\n\r\f\v");
+    if (start != std::string::npos) {
+        arg.erase(0, start);
+    } else {
+        arg.clear();
+    }
+  return arg;
+}
+
 int main()
 
 {
@@ -104,7 +119,7 @@ int main()
   std::map<std::string , std::string> pathMap = printPath(path);
   std::set<std::string> commands;
 
-  commands.insert({"echo", "exit", "type"});
+  commands.insert({"echo", "exit", "type" , "pwd" , "cd"});
 
   // wite space may cause some unexpected behaviour
 
@@ -136,8 +151,9 @@ int main()
     else if (words[0] == "type")
 
     {
-
-      std::string str = input.substr(5); //white space may cause bugs //will fix later
+       // std::string str = input.substr(5);
+      std::string str = extractArgumentString(input); 
+//    std::cout << str << std::endl;
       auto it = pathMap.find(str);
       if (commands.find(str) != commands.end())
       {
@@ -157,6 +173,21 @@ int main()
     else if (words[0] == "echo")
 
       std::cout << input.substr(5) << "\n";
+    
+    else if(words[0]== "cd"){
+      std::string path = extractArgumentString(input);
+      int pos = path.find("~");
+      if(pos != std::string::npos){
+        std::string home(std::getenv("HOME"));
+        path.replace(pos , 1 , home);
+      }
+      if(path.empty()) std::cout << "path is required"<<'\n';
+      else {
+        int result = chdir(path.c_str());
+        if(result !=0) std::cout << "cd: " << path<< ": No such file or directory"<<'\n';
+      }
+
+    }
 
     else if ((words.size() != 0) && (pathMap.find(words[0]) != pathMap.end()))
     {
