@@ -10,8 +10,65 @@
 #include <cstdlib>
 #include <map>
 #include <cstring>
+#include <algorithm>
 namespace fs = std::filesystem;
 
+
+
+void parseEcho(std::string input)
+{
+    
+        int quotes = std::count(input.begin(), input.end(), '\'');
+        while (quotes % 2 != 0)
+        {
+            std::string str2;
+            std::cout << "quote> ";
+            std::getline(std::cin, str2);
+            input += str2;
+            quotes = std::count(input.begin(), input.end(), '\'');
+        }
+
+    std::vector<std::string> args;
+    std::string current;
+    bool inSingleQuote = false;
+
+    for (size_t i = 0; i < input.size(); i++)
+    {
+        char c = input[i];
+
+        if (c == '\'')
+        {
+            inSingleQuote = !inSingleQuote;
+            continue;
+        }
+
+        if (std::isspace(c) && !inSingleQuote)
+        {
+            if (!current.empty())
+            {
+                args.push_back(current);
+                current.clear();
+            }
+        }
+        else
+        {
+            current.push_back(c);
+        }
+    }
+
+    if (!current.empty())
+    {
+        args.push_back(current);
+    }
+
+    
+    for(int i = 0 ; i < args.size() ; i++){
+      std::cout<<args[i];
+      if(i!=args.size()-1) std::cout<<" ";
+    }
+
+    std::cout <<std::endl;
+}
 
 
 std::map<std::string , std::string> printPath(const std::string &allPath){
@@ -172,7 +229,7 @@ int main()
 
     else if (words[0] == "echo")
 
-      std::cout << input.substr(5) << "\n";
+      parseEcho(input.substr(5));
     
     else if(words[0]== "cd"){
       std::string path = extractArgumentString(input);
