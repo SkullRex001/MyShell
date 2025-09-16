@@ -11,7 +11,103 @@
 #include <map>
 #include <cstring>
 #include <algorithm>
+#include <fstream>
 namespace fs = std::filesystem;
+
+
+
+std::vector<std::string> tokenize(const std::string input) {
+    std::vector<std::string> tokens;
+    std::string current;
+    bool inSingle = false, inDouble = false;
+
+    for (size_t i = 0; i < input.size(); i++) {
+        char c = input[i];
+
+        if (c == '\'' && !inDouble) { // toggle single quotes
+            inSingle = !inSingle;
+            continue;
+        }
+        if (c == '"' && !inSingle) { // toggle double quotes
+            inDouble = !inDouble;
+            continue;
+        }
+
+        if (std::isspace(c) && !inSingle && !inDouble) {
+            if (!current.empty()) {
+                tokens.push_back(current);
+                current.clear();
+            }
+        } else {
+            current.push_back(c);
+        }
+    }
+
+    if (!current.empty()) {
+        tokens.push_back(current);
+    }
+
+    return tokens;
+}
+
+
+void handleCat(std::string inputPath){
+//  std::string path;
+ // std::vector<std::string> paths;
+ // std::stringstream ss(inputPath);
+ // while(ss >> path){
+   //   paths.push_back(path);
+  //}
+  //
+  std::vector<std::string> paths = tokenize(inputPath);
+  int size = paths.size();
+  if(size > 1){
+
+    for(int i = 1 ; i < size ; i++){
+        std::ifstream file(paths[i]);
+        if(!file){
+          std::cout << "Error in opening file" << std::endl;
+          break;
+      }
+      std::string line;
+      while(getline(file, line)){
+        std::cout << line <<std::endl;
+      }
+      file.close();
+
+    }
+
+  }
+}
+
+
+bool isQuotesBalanced(std::string &input){
+    bool singleQuote = false;
+    bool doubleQuote = false;
+
+    for(int i = 0 ; i < (int)input.size() ; i++){
+        if(input[i] == '\'' && !doubleQuote) {
+            singleQuote = !singleQuote;
+        }
+        else if(input[i] == '"' && !singleQuote) {
+            doubleQuote = !doubleQuote;
+        }
+    }
+    return !singleQuote && !doubleQuote;
+}
+
+std::string takeInput(std::string &input){
+
+    while(!isQuotesBalanced(input)){
+        std::string str;
+        std::cout << "> ";
+        std::getline(std::cin , str);
+        input += "\n" + str;
+    }
+    return input;
+}
+
+
 
 
 
@@ -176,7 +272,7 @@ int main()
   std::map<std::string , std::string> pathMap = printPath(path);
   std::set<std::string> commands;
 
-  commands.insert({"echo", "exit", "type" , "pwd" , "cd"});
+  commands.insert({"echo", "exit", "type" , "pwd" , "cd" , "cat"});
 
   // wite space may cause some unexpected behaviour
 
@@ -227,10 +323,16 @@ int main()
         std::cout << str << ": not found" << '\n';
     }
 
-    else if (words[0] == "echo")
-
-      parseEcho(input.substr(5));
-    
+    else if (words[0] == "echo"){
+      std::string strText = input.substr(5);
+      std::string finalInput = takeInput(strText);
+      std::vector<std::string> str = tokenize(finalInput);
+      for(int i = 0 ; i < str.size() ; i++){
+        std::cout << str[i];
+        if(i!= str.size()-1) std::cout<<" ";
+      }
+        std::cout<<std::endl;
+    }
     else if(words[0]== "cd"){
       std::string path = extractArgumentString(input);
       int pos = path.find("~");
@@ -245,7 +347,9 @@ int main()
       }
 
     }
-
+    else if(words[0]=="cat"){
+      handleCat(input);
+    }
     else if ((words.size() != 0) && (pathMap.find(words[0]) != pathMap.end()))
     {
         std::system(input.c_str());
