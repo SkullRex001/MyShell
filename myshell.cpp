@@ -8,10 +8,11 @@
 #include <unistd.h>
 #include <ctime>
 #include <cstdlib>
-#include <map>
+#include <unordered_map>
 #include <cstring>
 #include <algorithm>
 #include <fstream>
+
 namespace fs = std::filesystem;
 
 
@@ -32,6 +33,12 @@ std::vector<std::string> tokenize(const std::string input) {
             inDouble = !inDouble;
             continue;
         }
+
+        if(input[i] == '\\' && i+1 <input.size() && !inSingle && !inDouble){
+          current.push_back(input[i+1]);
+          i++;
+          continue;
+    }
 
         if (std::isspace(c) && !inSingle && !inDouble) {
             if (!current.empty()) {
@@ -71,12 +78,12 @@ void handleCat(std::string inputPath){
       }
       std::string line;
       while(getline(file, line)){
-        std::cout << line <<std::endl;
+        std::cout << line<<std::endl;
       }
       file.close();
 
     }
-
+    std::cout <<std::endl;
   }
 }
 
@@ -167,8 +174,8 @@ void parseEcho(std::string input)
 }
 
 
-std::map<std::string , std::string> printPath(const std::string &allPath){
-  std::map<std::string , std::string> pathMap;
+std::unordered_map<std::string , std::string> printPath(const std::string &allPath){
+  std::unordered_map<std::string , std::string> pathMap;
   char* path_copy = strdup(allPath.c_str());
   char* path = strtok(path_copy , ":");
   while (path!=NULL) {
@@ -269,7 +276,7 @@ int main()
 //  std::vector<std::string> allPath = extractPath(path);
 //  std::set<std::string> listOfAllExecutable = setOfExecutable(allPath);
 
-  std::map<std::string , std::string> pathMap = printPath(path);
+  std::unordered_map<std::string , std::string> pathMap = printPath(path);
   std::set<std::string> commands;
 
   commands.insert({"echo", "exit", "type" , "pwd" , "cd" , "cat"});
