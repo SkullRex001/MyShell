@@ -384,25 +384,51 @@ int main()
     auto it1 = std::find(words.begin(), words.end(), "1>");
     auto it2 = std::find(words.begin(), words.end(), ">");
     auto it3 = std::find(words.begin(), words.end(), "2>");
-    if (it1 != words.end() || it2 != words.end() || it3 != words.end())
+    auto it4 = std::find(words.begin(), words.end(), "1>>");
+    auto it5 = std::find(words.begin(), words.end(), ">>");
+    auto it6 = std::find(words.begin(), words.end(), "2>>");
+
+    if (it1 != words.end() || it2 != words.end() || it3 != words.end() || it4 != words.end() || it5 != words.end() || it6 != words.end())
     {
       int index;
+      int flags = O_WRONLY | O_CREAT;
 
       if (it1 != words.end())
       {
         index = it1 - words.begin();
         saved_stdout = dup(1);
+        flags |= O_TRUNC;
       }
       else if (it2 != words.end())
       {
 
         index = it2 - words.begin();
         saved_stdout = dup(1);
+        flags |= O_TRUNC;
       }
       else if (it3 != words.end())
       {
         index = it3 - words.begin();
         saved_stdout = dup(2);
+        flags |= O_TRUNC;
+      }
+      else if (it4 != words.end())
+      {
+        index = it4 - words.begin();
+        saved_stdout = dup(1);
+        flags |= O_APPEND;
+      }
+      else if (it5 != words.end())
+      {
+        index = it5 - words.begin();
+        saved_stdout = dup(1);
+        flags |= O_APPEND;
+      }
+      else if (it6 != words.end())
+      {
+        index = it6 - words.begin();
+        saved_stdout = dup(2);
+        flags |= O_APPEND;
       }
 
       int pathIndex = index + 1;
@@ -411,21 +437,21 @@ int main()
         std::cout << "File path not provided";
         continue;
       }
-      int file = open(words[pathIndex].c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+      int file = open(words[pathIndex].c_str(), flags, 0644);
       if (file < 0)
       {
         std::cout << "Error in opening file" << std::endl;
         continue;
       }
 
-      if (it1 != words.end() || it2 != words.end())
+      if (it1 != words.end() || it2 != words.end() || it4 != words.end() || it5 != words.end())
         if (dup2(file, 1) < 0)
         {
           std::cout << "dup2 failed";
           continue;
         }
 
-      if (it3 != words.end())
+      if (it3 != words.end() || it6 != words.end())
         if (dup2(file, 2) < 0)
         {
           std::cout << "dup2 failed";
@@ -441,9 +467,11 @@ int main()
       {
         input.erase(operatorPostion, words[index].length());
         int stringIndexAfterDeletingOperator;
-        if (it1 != words.end() || it3 != words.end())
+        if (it1 != words.end() || it3 != words.end() || it5 != words.end())
           stringIndexAfterDeletingOperator = 2;
-        else
+        else if (it4 != words.end() || it6 != words.end())
+          stringIndexAfterDeletingOperator = 3;
+        else if (it2 != words.end())
           stringIndexAfterDeletingOperator = 1;
         input.erase(pathPostion - stringIndexAfterDeletingOperator, words[pathIndex].length());
       }
@@ -534,12 +562,11 @@ int main()
     {
       std::system(input.c_str());
     }
-
     else
-
       std::cout << input << ": not found" << std::endl;
 
-    if (it1 != words.end() || it2 != words.end())
+      
+    if (it1 != words.end() || it2 != words.end() || it4 != words.end() || it5 != words.end())
     {
       if (dup2(saved_stdout, 1) < 0)
       {
@@ -548,18 +575,13 @@ int main()
       }
       close(saved_stdout);
     }
-    else if (it3 != words.end())
+    else if (it3 != words.end() || it6 != words.end())
     {
-
       if (dup2(saved_stdout, 2) < 0)
-
       {
-
         std::cout << "Unable to restore stdout";
-
         return 1;
       }
-
       close(saved_stdout);
     }
 
