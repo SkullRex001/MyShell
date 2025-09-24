@@ -12,8 +12,24 @@
 #include <cstring>
 #include <algorithm>
 #include <fstream>
-
+#include <fcntl.h>
+#include <cctype> 
 namespace fs = std::filesystem;
+
+std::string trim(const std::string& str) {
+    size_t start = 0;
+    while (start < str.size() && std::isspace(static_cast<unsigned char>(str[start]))) {
+        start++;
+    }
+
+    size_t end = str.size();
+    while (end > start && std::isspace(static_cast<unsigned char>(str[end - 1]))) {
+        end--;
+    }
+
+    return str.substr(start, end - start);
+}
+
 
 std::vector<std::string> tokenize(const std::string input)
 {
@@ -362,24 +378,24 @@ int main()
     input = takeInput(input);
 
     std::vector<std::string> words = tokenizeForCat(input);
-
-    auto it1 = std::find(words2.begin(), words2.end(), "1>");
-    auto it2 = std::find(words2.begin(), words2.end(), ">");
-    if (it1 != words2.end() || it2 != words2.end())
+    int saved_stdout = dup(1);  
+    auto it1 = std::find(words.begin(), words.end(), "1>");
+    auto it2 = std::find(words.begin(), words.end(), ">");
+    if (it1 != words.end() || it2 != words.end())
     {
       int index;
-      if (it1 != words2.end())
-        index = it1 - words2.begin();
-      if (it2 != words2.end())
-        index = it2 - words2.begin();
+      if (it1 != words.end())
+        index = it1 - words.begin();
+      if (it2 != words.end())
+        index = it2 - words.begin();
 
       int pathIndex = index + 1;
-      if (words2.size() < pathIndex + 1)
+      if (words.size() < pathIndex + 1)
       {
         std::cout << "File path not provided";
         continue;
       }
-      int file = open(words2[pathIndex].c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+      int file = open(words[pathIndex].c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
       if (file < 0)
       {
         std::cout << "Error in opening file" << std::endl;
@@ -391,6 +407,25 @@ int main()
         std::cout << "dup2 failed";
         continue;
       }
+
+
+      //removing "> path" from string and array and input string
+
+      int operatorPostion = input.find(words[index]);
+      int pathPostion = input.find(words[pathIndex]);
+     // std::cout << operatorPostion << " " << pathPostion <<std::endl;
+      if(operatorPostion != std::string::npos && operatorPostion != std::string::npos){
+      input.erase(operatorPostion , words[index].length());
+  int stringIndexAfterDeletingOperator;
+        if(it1 != words.end()) stringIndexAfterDeletingOperator = 2;
+        else stringIndexAfterDeletingOperator = 1;
+      input.erase(pathPostion - stringIndexAfterDeletingOperator , words[pathIndex].length());
+      }
+
+      words[index] = "";
+      words[pathIndex] = "";
+
+      input = trim(input);
 
       close(file);
     }
@@ -466,7 +501,9 @@ int main()
     }
     else if (words[0] == "cat")
     {
-      handleCat(input);
+      //handleCat(input);
+     std::system(input.c_str());
+
     }
     else if ((words.size() != 0) && (pathMap.find(words[0]) != pathMap.end()))
     {
@@ -476,5 +513,20 @@ int main()
     else
 
       std::cout << input << ": not found" << std::endl;
+
+
+    if (it1 != words.end() || it2 != words.end()){
+  if (dup2(saved_stdout, 1) < 0) {
+      std::cout << "Unable to restore stdout";
+        return 1;
+    }
+    close(saved_stdout);
   }
+
+    //std::cout <<input <<std::endl;
+    //for(auto it : words)
+      //std::cout << it <<" " <<std::endl;
+  }
+
+
 }
