@@ -363,16 +363,48 @@ int main()
 
     std::vector<std::string> words = tokenizeForCat(input);
 
-   // std::stringstream ss(input);
+    auto it1 = std::find(words2.begin(), words2.end(), "1>");
+    auto it2 = std::find(words2.begin(), words2.end(), ">");
+    if (it1 != words2.end() || it2 != words2.end())
+    {
+      int index;
+      if (it1 != words2.end())
+        index = it1 - words2.begin();
+      if (it2 != words2.end())
+        index = it2 - words2.begin();
 
-   // std::string word;
-   // std::vector<std::string> words;
+      int pathIndex = index + 1;
+      if (words2.size() < pathIndex + 1)
+      {
+        std::cout << "File path not provided";
+        continue;
+      }
+      int file = open(words2[pathIndex].c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+      if (file < 0)
+      {
+        std::cout << "Error in opening file" << std::endl;
+        continue;
+      }
 
-   // while (ss >> word)
+      if (dup2(file, 1) < 0)
+      {
+        std::cout << "dup2 failed";
+        continue;
+      }
+
+      close(file);
+    }
+
+    // std::stringstream ss(input);
+
+    // std::string word;
+    // std::vector<std::string> words;
+
+    // while (ss >> word)
 
     //{
 
-      //words.push_back(word);
+    // words.push_back(word);
     //}
 
     if (input == "exit 0")
