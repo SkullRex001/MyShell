@@ -13,23 +13,25 @@
 #include <algorithm>
 #include <fstream>
 #include <fcntl.h>
-#include <cctype> 
+#include <cctype>
 namespace fs = std::filesystem;
 
-std::string trim(const std::string& str) {
-    size_t start = 0;
-    while (start < str.size() && std::isspace(static_cast<unsigned char>(str[start]))) {
-        start++;
-    }
+std::string trim(const std::string &str)
+{
+  size_t start = 0;
+  while (start < str.size() && std::isspace(static_cast<unsigned char>(str[start])))
+  {
+    start++;
+  }
 
-    size_t end = str.size();
-    while (end > start && std::isspace(static_cast<unsigned char>(str[end - 1]))) {
-        end--;
-    }
+  size_t end = str.size();
+  while (end > start && std::isspace(static_cast<unsigned char>(str[end - 1])))
+  {
+    end--;
+  }
 
-    return str.substr(start, end - start);
+  return str.substr(start, end - start);
 }
-
 
 std::vector<std::string> tokenize(const std::string input)
 {
@@ -378,16 +380,30 @@ int main()
     input = takeInput(input);
 
     std::vector<std::string> words = tokenizeForCat(input);
-    int saved_stdout = dup(1);  
+    int saved_stdout;
     auto it1 = std::find(words.begin(), words.end(), "1>");
     auto it2 = std::find(words.begin(), words.end(), ">");
-    if (it1 != words.end() || it2 != words.end())
+    auto it3 = std::find(words.begin(), words.end(), "2>");
+    if (it1 != words.end() || it2 != words.end() || it3 != words.end())
     {
       int index;
+
       if (it1 != words.end())
+      {
         index = it1 - words.begin();
-      if (it2 != words.end())
+        saved_stdout = dup(1);
+      }
+      else if (it2 != words.end())
+      {
+
         index = it2 - words.begin();
+        saved_stdout = dup(1);
+      }
+      else if (it3 != words.end())
+      {
+        index = it3 - words.begin();
+        saved_stdout = dup(2);
+      }
 
       int pathIndex = index + 1;
       if (words.size() < pathIndex + 1)
@@ -402,24 +418,34 @@ int main()
         continue;
       }
 
-      if (dup2(file, 1) < 0)
-      {
-        std::cout << "dup2 failed";
-        continue;
-      }
+      if (it1 != words.end() || it2 != words.end())
+        if (dup2(file, 1) < 0)
+        {
+          std::cout << "dup2 failed";
+          continue;
+        }
 
+      if (it3 != words.end())
+        if (dup2(file, 2) < 0)
+        {
+          std::cout << "dup2 failed";
+          continue;
+        }
 
-      //removing "> path" from string and array and input string
+      // removing "> path" from string and array and input string
 
       int operatorPostion = input.find(words[index]);
       int pathPostion = input.find(words[pathIndex]);
-     // std::cout << operatorPostion << " " << pathPostion <<std::endl;
-      if(operatorPostion != std::string::npos && operatorPostion != std::string::npos){
-      input.erase(operatorPostion , words[index].length());
-  int stringIndexAfterDeletingOperator;
-        if(it1 != words.end()) stringIndexAfterDeletingOperator = 2;
-        else stringIndexAfterDeletingOperator = 1;
-      input.erase(pathPostion - stringIndexAfterDeletingOperator , words[pathIndex].length());
+      // std::cout << operatorPostion << " " << pathPostion <<std::endl;
+      if (operatorPostion != std::string::npos && operatorPostion != std::string::npos)
+      {
+        input.erase(operatorPostion, words[index].length());
+        int stringIndexAfterDeletingOperator;
+        if (it1 != words.end() || it3 != words.end())
+          stringIndexAfterDeletingOperator = 2;
+        else
+          stringIndexAfterDeletingOperator = 1;
+        input.erase(pathPostion - stringIndexAfterDeletingOperator, words[pathIndex].length());
       }
 
       words[index] = "";
@@ -501,9 +527,8 @@ int main()
     }
     else if (words[0] == "cat")
     {
-      //handleCat(input);
-     std::system(input.c_str());
-
+      // handleCat(input);
+      std::system(input.c_str());
     }
     else if ((words.size() != 0) && (pathMap.find(words[0]) != pathMap.end()))
     {
@@ -514,19 +539,32 @@ int main()
 
       std::cout << input << ": not found" << std::endl;
 
-
-    if (it1 != words.end() || it2 != words.end()){
-  if (dup2(saved_stdout, 1) < 0) {
-      std::cout << "Unable to restore stdout";
+    if (it1 != words.end() || it2 != words.end())
+    {
+      if (dup2(saved_stdout, 1) < 0)
+      {
+        std::cout << "Unable to restore stdout";
         return 1;
+      }
+      close(saved_stdout);
     }
-    close(saved_stdout);
+    else if (it3 != words.end())
+    {
+
+      if (dup2(saved_stdout, 2) < 0)
+
+      {
+
+        std::cout << "Unable to restore stdout";
+
+        return 1;
+      }
+
+      close(saved_stdout);
+    }
+
+    // std::cout <<input <<std::endl;
+    // for(auto it : words)
+    // std::cout << it <<" " <<std::endl;
   }
-
-    //std::cout <<input <<std::endl;
-    //for(auto it : words)
-      //std::cout << it <<" " <<std::endl;
-  }
-
-
 }
