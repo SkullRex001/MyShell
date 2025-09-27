@@ -14,7 +14,46 @@
 #include <fstream>
 #include <fcntl.h>
 #include <cctype>
+#include <readline/readline.h>
+#include <readline/history.h>
 namespace fs = std::filesystem;
+
+
+
+// Generator function that returns one completion at a time
+char* command_generator(const char* text, int state) {
+    static int list_index, len;
+    static const char* commands[] = {"echo", "exit", "export", "env", nullptr};
+
+    if (state == 0) {
+        list_index = 0;
+        len = std::strlen(text);
+    }
+
+    while (commands[list_index]) {
+        const char* cmd = commands[list_index++];
+        if (std::strncmp(cmd, text, len) == 0) {
+            return strdup(cmd); // readline expects malloc'd strings
+        }
+    }
+
+    return nullptr; // No more matches
+}
+
+// Completion function that readline will call
+char** my_completion(const char* text, int start, int end) {
+    (void)start; // unused
+    (void)end;   // unused
+
+    // Only complete the first word (command position)
+    if (start == 0) {
+        return rl_completion_matches(text, command_generator);
+    }
+
+    // Otherwise, fallback to default filename completion
+    return nullptr;
+}
+
 
 std::string trim(const std::string &str)
 {
@@ -349,6 +388,9 @@ int main()
 
 {
 
+
+  rl_attempted_completion_function = my_completion;
+
   std::srand(std::time(0));
   // Flush after every std::cout / std:cerr
 
@@ -371,11 +413,14 @@ int main()
   while (true)
   {
 
-    std::cout << "$ ";
+   // std::cout << "$ ";
 
-    std::string input;
 
-    std::getline(std::cin, input);
+    //std::getline(std::cin, input);
+    
+    char * getInput = readline("$ ");
+
+    std::string input(getInput);
 
     input = takeInput(input);
 
