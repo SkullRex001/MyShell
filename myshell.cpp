@@ -16,44 +16,58 @@
 #include <cctype>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <sys/wait.h>
 namespace fs = std::filesystem;
 
+std::vector<std::string> auto_complete_commands;
 
+void make_auto_complete_commnad_vector(std::unordered_map<std::string, std::string> &pathMap, std::set<std::string> &commands)
+{
+
+  for (auto it : commands)
+    auto_complete_commands.push_back(it);
+
+  for (auto it : pathMap)
+    auto_complete_commands.push_back(it.first);
+}
 
 // Generator function that returns one completion at a time
-char* command_generator(const char* text, int state) {
-    static int list_index, len;
-    static const char* commands[] = {"echo", "exit", "export", "env", nullptr};
+char *command_generator(const char *text, int state)
+{
+  static int list_index, len;
+  if (state == 0)
+  {
+    list_index = 0;
+    len = std::strlen(text);
+  }
 
-    if (state == 0) {
-        list_index = 0;
-        len = std::strlen(text);
+  while (list_index < auto_complete_commands.size())
+  {
+    const std::string &cmd = auto_complete_commands[list_index++];
+    if (cmd.compare(0, len, text) == 0)
+    {
+      return strdup(cmd.c_str()); // readline expects malloc'd strings
     }
+  }
 
-    while (commands[list_index]) {
-        const char* cmd = commands[list_index++];
-        if (std::strncmp(cmd, text, len) == 0) {
-            return strdup(cmd); // readline expects malloc'd strings
-        }
-    }
-
-    return nullptr; // No more matches
+  return nullptr; // No more matches
 }
 
 // Completion function that readline will call
-char** my_completion(const char* text, int start, int end) {
-    (void)start; // unused
-    (void)end;   // unused
+char **my_completion(const char *text, int start, int end)
+{
+  (void)start; // unused
+  (void)end;   // unused
 
-    // Only complete the first word (command position)
-    if (start == 0) {
-        return rl_completion_matches(text, command_generator);
-    }
+  // Only complete the first word (command position)
+  if (start == 0)
+  {
+    return rl_completion_matches(text, command_generator);
+  }
 
-    // Otherwise, fallback to default filename completion
-    return nullptr;
+  // Otherwise, fallback to default filename completion
+  return nullptr;
 }
-
 
 std::string trim(const std::string &str)
 {
@@ -388,7 +402,6 @@ int main()
 
 {
 
-
   rl_attempted_completion_function = my_completion;
 
   std::srand(std::time(0));
@@ -408,17 +421,18 @@ int main()
 
   commands.insert({"echo", "exit", "type", "pwd", "cd", "cat"});
 
+  make_auto_complete_commnad_vector(pathMap, commands);
+
   // wite space may cause some unexpected behaviour
 
   while (true)
   {
 
-   // std::cout << "$ ";
+    // std::cout << "$ ";
 
+    // std::getline(std::cin, input);
 
-    //std::getline(std::cin, input);
-    
-    char * getInput = readline("$ ");
+    char *getInput = readline("$ ");
 
     std::string input(getInput);
 
@@ -598,19 +612,35 @@ int main()
           std::cout << "cd: " << path << ": No such file or directory" << '\n';
       }
     }
-    else if (words[0] == "cat")
-    {
-      // handleCat(input);
-      std::system(input.c_str());
-    }
+    // else if (words[0] == "cat")
+    // {
+    //   // handleCat(input);
+    //   std::system(input.c_str());
+    // }
     else if ((words.size() != 0) && (pathMap.find(words[0]) != pathMap.end()))
     {
-      std::system(input.c_str());
+      // std::system(input.c_str()); This internally uses shell so I was idiot to use it to create shell;
+      std::vector<char *> argv;
+      //      for(auto it : words)
+      //       std::cout << it << '\n';
+      for (auto &t : words)
+        if (t != "")
+          argv.push_back(&t[0]);
+      argv.push_back(nullptr);
+      pid_t pid = fork();
+      if (pid == 0)
+      {
+        execvp(argv[0], argv.data());
+        std::cout << "There was an error \n";
+      }
+      else
+      {
+        wait(NULL);
+      }
     }
     else
       std::cout << input << ": not found" << std::endl;
 
-      
     if (it1 != words.end() || it2 != words.end() || it4 != words.end() || it5 != words.end())
     {
       if (dup2(saved_stdout, 1) < 0)
