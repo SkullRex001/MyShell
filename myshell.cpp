@@ -439,6 +439,14 @@ int main()
     input = takeInput(input);
 
     std::vector<std::string> words = tokenizeForCat(input);
+
+
+    //pipe
+    auto pipeIndex = std::find(words.begin() , words.end() , "|");
+    bool isPipe = false;
+    if(pipeIndex != words.end()) isPipe = true;
+
+
     int saved_stdout;
     auto it1 = std::find(words.begin(), words.end(), "1>");
     auto it2 = std::find(words.begin(), words.end(), ">");
@@ -555,12 +563,52 @@ int main()
     // words.push_back(word);
     //}
 
-    if (input == "exit 0")
-
+    if (input == "exit 0"){
       return 0;
+    }
+    else if(isPipe){
+      std::vector<char *> arg1, arg2;
+      auto it = std::find(words.begin(), words.end(), "|") - words.begin();
+        for(int i = 0; i < it; i++)
+            arg1.push_back(const_cast<char*>(words[i].c_str()));
+        arg1.push_back(nullptr);
 
+        for(int i = it + 1; i < words.size(); i++)
+            arg2.push_back(const_cast<char*>(words[i].c_str()));
+        arg2.push_back(nullptr);
+
+        int fd[2];
+        pipe(fd);
+
+        int pid1 = fork();
+        if(pid1 == 0){
+            // First command
+            close(fd[0]); // close read end
+            dup2(fd[1], STDOUT_FILENO);
+            close(fd[1]);
+            execvp(arg1[0], &arg1[0]);
+            perror("execvp failed");
+            _exit(1);
+        }
+
+        int pid2 = fork();
+        if(pid2 == 0){
+            // Second command
+            close(fd[1]); // close write end
+            dup2(fd[0], STDIN_FILENO);
+            close(fd[0]);
+            execvp(arg2[0], &arg2[0]);
+            perror("execvp failed");
+            _exit(1);
+        }
+
+        // Parent closes both ends and waits for children
+        close(fd[0]);
+        close(fd[1]);
+        waitpid(pid1, nullptr, 0);
+        waitpid(pid2, nullptr, 0);
+    } 
     else if (words[0] == "type")
-
     {
       // std::string str = input.substr(5);
       std::string str = extractArgumentString(input);
