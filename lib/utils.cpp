@@ -179,3 +179,29 @@ std::vector<std::string> tokenize(const std::string input)
   return tokens;
 }
 
+
+
+vector<char *> extractPipedInput(string input){
+  vector<char *> tok;
+  char * strcp = strdup(input.c_str());
+  char *val = strtok(strcp , "|");
+  while(val){
+    string s(val);
+    auto pos = s.find_first_not_of(" ");
+    if(pos != string::npos) s.erase(0, pos);
+    tok.push_back(strdup(s.c_str()));
+    val = strtok(NULL , "|");
+  }
+  free(strcp);
+  return tok;
+}
+
+vector<char*> splitCommand(char * cmd){
+  stringstream ss(cmd);
+  string word;
+  vector<char*> args;
+  while (ss >> word) args.push_back(strdup(word.c_str()));
+  args.push_back(nullptr);
+  return args;
+}
+
