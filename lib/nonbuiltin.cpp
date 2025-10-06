@@ -4,28 +4,39 @@
 #include <unistd.h>
 #include <iostream>
 #include "utils.h"
+#include "builtin.h"
 #include <set>
 #include <cstring>
 #include <sstream>
+#include <cstdlib>
+#include <unordered_map>
 
 
-set <string> builtInCommands = { "one" , "two" , "three"};
+
+std::set<std::string> builtInCommands = {"echo",  "type", "cd", "cat"};
+
+
+/*
+
+std::set <std::string> builtInCommands = { "one" , "two" , "three"};
 
 
 //This will mimic the builtin commands
 void sampleBuiltinOne(){
-  cout << "sampleBuiltinOne" << endl;
+  std::cout << "sampleBuiltinOne" << '\n';
 }
 
 
 void sampleBuiltinTwo(){
-  cout << "sampleBuiltinTwo" << endl;
+  std::cout << "sampleBuiltinTwo" << '\n';
 }
 
 
 void sampleBuiltinThree(){
-  cout << "sampleBuiltinThree" << endl;
+  std::cout << "sampleBuiltinThree" << '\n';
 }
+
+*/
 
 
 void handleRunningSingleExecutable(std::vector<std::string> words){
@@ -48,15 +59,15 @@ void handleRunningSingleExecutable(std::vector<std::string> words){
 
 
 
-void hadndleSinglePipe(string input){
-  vector<char *> pipedInput = extractPipedInput(input);
+void hadndleSinglePipe(std::string input , std::unordered_map<std::string , std::string> &pathMap , std::set<std::string> commands){
+  std::vector<char *> pipedInput = extractPipedInput(input);
   if(pipedInput.size() !=2) {
-    cout << "This function hadndleSinglePipe";
+    std::cout << "This function hadndleSinglePipe";
     return;
   }
   int fd[2];
   if(pipe(fd)==-1){
-    cout << "Error in pipe";
+    std::cout << "Error in pipe";
     return;
   }
   int pid1 = fork();
@@ -69,13 +80,14 @@ void hadndleSinglePipe(string input){
     auto it = builtInCommands.find(args1[0]);
     if(it == builtInCommands.end()){
     execvp(args1[0] , args1.data());
-    cout << "Error";
+    std::cout << "Error\n";
     exit(1);
     }
     else{
-      if(strcmp(args1[0], "one") == 0) sampleBuiltinOne();
-      else if(strcmp(args1[0], "two") == 0) sampleBuiltinTwo();
-      else if(strcmp(args1[0], "three") == 0) sampleBuiltinThree();
+      std::string inputAfterPipe(pipedInput[0]);
+      if(strcmp(args1[0], "echo") == 0) handleEchoBuiltin(inputAfterPipe);
+      else if(strcmp(args1[0], "type") == 0) handleTypeBuiltin(inputAfterPipe , pathMap , commands);
+      else if(strcmp(args1[0], "cd") == 0) handleChangeDirectoryBuiltin(inputAfterPipe);
       exit(0);
     }
   }else{
@@ -89,14 +101,15 @@ void hadndleSinglePipe(string input){
       auto it = builtInCommands.find(args2[0]);
       if(it == builtInCommands.end()){
       execvp(args2[0] , args2.data());
-      cout << "Error";
+      std::cout << "Error\n";
       exit(1);
     }
     else{
 
-      if(strcmp(args2[0], "one") == 0) sampleBuiltinOne();
-      else if(strcmp(args2[0], "two") == 0) sampleBuiltinTwo();
-      else if(strcmp(args2[0], "three") == 0) sampleBuiltinThree();
+      std::string inputAfterPipe(pipedInput[1]);
+      if(strcmp(args2[0], "echo") == 0) handleEchoBuiltin(inputAfterPipe);
+      else if(strcmp(args2[0], "type") == 0) handleTypeBuiltin(inputAfterPipe , pathMap , commands);
+      else if(strcmp(args2[0], "cd") == 0) handleChangeDirectoryBuiltin(inputAfterPipe);
       exit(0);
     }
     }else{

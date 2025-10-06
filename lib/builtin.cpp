@@ -28,11 +28,11 @@ void handleTypeBuiltin(std::string &inputString , std::unordered_map<std::string
 }
 
 
-
 void handleEchoBuiltin(std::string &inputString){
       
       std::string strText = inputString.substr(5);
 //      std::string strText = extractArgumentString(inputString);
+      strText = trim(strText);
       std::string finalInput = takeInput(strText);
       std::vector<std::string> str = tokenize(finalInput);
       for (int i = 0; i < str.size(); i++)

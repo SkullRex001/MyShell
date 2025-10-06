@@ -71,6 +71,7 @@ char **my_completion(const char *text, int start, int end)
   // Otherwise, fallback to default filename completion
   return nullptr;
 }
+/*
 
 std::string trim(const std::string &str)
 {
@@ -88,6 +89,8 @@ std::string trim(const std::string &str)
 
   return str.substr(start, end - start);
 }
+*/
+
 /*
 std::vector<std::string> tokenize(const std::string input)
 {
@@ -590,6 +593,7 @@ int main()
       return 0;
     }
     else if(isPipe){
+    /*
       std::vector<char *> arg1, arg2;
       auto it = std::find(words.begin(), words.end(), "|") - words.begin();
         for(int i = 0; i < it; i++)
@@ -630,6 +634,9 @@ int main()
         close(fd[1]);
         waitpid(pid1, nullptr, 0);
         waitpid(pid2, nullptr, 0);
+        */
+        
+        hadndleSinglePipe(input , pathMap , commands);
     } 
     else if (words[0] == "type")
     {

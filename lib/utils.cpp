@@ -181,14 +181,14 @@ std::vector<std::string> tokenize(const std::string input)
 
 
 
-vector<char *> extractPipedInput(string input){
-  vector<char *> tok;
+std::vector<char *> extractPipedInput(std::string input){
+  std::vector<char *> tok;
   char * strcp = strdup(input.c_str());
   char *val = strtok(strcp , "|");
   while(val){
-    string s(val);
+    std::string s(val);
     auto pos = s.find_first_not_of(" ");
-    if(pos != string::npos) s.erase(0, pos);
+    if(pos != std::string::npos) s.erase(0, pos);
     tok.push_back(strdup(s.c_str()));
     val = strtok(NULL , "|");
   }
@@ -196,12 +196,29 @@ vector<char *> extractPipedInput(string input){
   return tok;
 }
 
-vector<char*> splitCommand(char * cmd){
-  stringstream ss(cmd);
-  string word;
-  vector<char*> args;
+std::vector<char*> splitCommand(char * cmd){
+  std::stringstream ss(cmd);
+  std::string word;
+  std::vector<char*> args;
   while (ss >> word) args.push_back(strdup(word.c_str()));
   args.push_back(nullptr);
   return args;
 }
 
+
+std::string trim(const std::string &str)
+{
+  size_t start = 0;
+  while (start < str.size() && std::isspace(static_cast<unsigned char>(str[start])))
+  {
+    start++;
+  }
+
+  size_t end = str.size();
+  while (end > start && std::isspace(static_cast<unsigned char>(str[end - 1])))
+  {
+    end--;
+  }
+
+  return str.substr(start, end - start);
+}
