@@ -469,8 +469,11 @@ int main()
 
     //pipe
     auto pipeIndex = std::find(words.begin() , words.end() , "|");
-    bool isPipe = false;
-    if(pipeIndex != words.end()) isPipe = true;
+    int pipeCount = 0;
+    while(pipeIndex != words.end()){
+      pipeCount++;
+      pipeIndex = std::find(pipeIndex+1 , words.end() , "|");
+    }
 
 
     int saved_stdout;
@@ -592,7 +595,7 @@ int main()
     if (input == "exit 0"){
       return 0;
     }
-    else if(isPipe){
+    else if(pipeCount){
     /*
       std::vector<char *> arg1, arg2;
       auto it = std::find(words.begin(), words.end(), "|") - words.begin();
@@ -635,8 +638,13 @@ int main()
         waitpid(pid1, nullptr, 0);
         waitpid(pid2, nullptr, 0);
         */
-        
+
+        if(pipeCount==1){
         hadndleSinglePipe(input , pathMap , commands);
+      }else{
+        handleDoublePipe(input , pathMap , commands);
+      }
+        
     } 
     else if (words[0] == "type")
     {

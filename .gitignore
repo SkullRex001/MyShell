@@ -2,3 +2,4 @@ test
 demo
 *.o
 myshell
+.vscode

@@ -125,3 +125,95 @@ void hadndleSinglePipe(std::string input , std::unordered_map<std::string , std:
 }
 
 
+void handleDoublePipe(std::string input , std::unordered_map<std::string , std::string> &pathMap , std::set<std::string> commands){
+  
+  std::vector<char *> pipedInput = extractPipedInput(input);
+  if(pipedInput.size() !=3) {
+    std::cout << "This function hadndleDoublePipe";
+    return;
+  }
+  int fd1[2] , fd2[2];
+  if(pipe(fd1)==-1 || pipe(fd2)==-1){
+    std::cout << "Error in pipe";
+    return;
+  }
+  int pid1 = fork();
+  if(pid1==0){
+    //child1
+    
+    dup2(fd1[1], STDOUT_FILENO); 
+    close(fd1[0]); close(fd1[1]);
+    close(fd2[0]); close(fd2[1]);
+    auto args1 = splitCommand(pipedInput[0]);
+    auto it = builtInCommands.find(args1[0]);
+    if(it == builtInCommands.end()){
+    execvp(args1[0] , args1.data());
+    std::cout << "Error";
+    exit(1);
+    }
+    else{
+
+      std::string inputAfterPipe(pipedInput[0]);
+      if(strcmp(args1[0], "echo") == 0) handleEchoBuiltin(inputAfterPipe);
+      else if(strcmp(args1[0], "type") == 0) handleTypeBuiltin(inputAfterPipe , pathMap , commands);
+      else if(strcmp(args1[0], "cd") == 0) handleChangeDirectoryBuiltin(inputAfterPipe);
+      exit(0);
+    }
+  }else{
+    int pid2 = fork();
+    if(pid2==0){
+      //child2
+      
+      dup2(fd1[0], STDIN_FILENO);
+      dup2(fd2[1], STDOUT_FILENO);
+      close(fd1[0]); close(fd1[1]);
+      close(fd2[0]); close(fd2[1]);
+      auto args2 = splitCommand(pipedInput[1]);
+      auto it = builtInCommands.find(args2[0]);
+      if(it == builtInCommands.end()){
+      execvp(args2[0] , args2.data());
+      std::cout << "Error";
+      exit(1);
+    }
+    else{
+
+      std::string inputAfterPipe(pipedInput[1]);
+      if(strcmp(args2[0], "echo") == 0) handleEchoBuiltin(inputAfterPipe);
+      else if(strcmp(args2[0], "type") == 0) handleTypeBuiltin(inputAfterPipe , pathMap , commands);
+      else if(strcmp(args2[0], "cd") == 0) handleChangeDirectoryBuiltin(inputAfterPipe);
+      exit(0);
+    }
+    }else{
+      int pid3 = fork();
+      if(pid3==0){
+       //child3
+      
+      dup2(fd2[0], STDIN_FILENO);
+      close(fd1[0]); close(fd1[1]);
+      close(fd2[0]); close(fd2[1]);
+      auto args3 = splitCommand(pipedInput[2]);
+      auto it = builtInCommands.find(args3[0]);
+      if(it == builtInCommands.end()){
+      execvp(args3[0] , args3.data());
+      std::cout << "Error";
+      exit(1);
+    }
+    else{
+
+      std::string inputAfterPipe(pipedInput[2]);
+      if(strcmp(args3[0], "echo") == 0) handleEchoBuiltin(inputAfterPipe);
+      else if(strcmp(args3[0], "type") == 0) handleTypeBuiltin(inputAfterPipe , pathMap , commands);
+      else if(strcmp(args3[0], "cd") == 0) handleChangeDirectoryBuiltin(inputAfterPipe);
+      exit(0);
+    }
+      }else{
+        close(fd1[0]); close(fd1[1]);
+        close(fd2[0]); close(fd2[1]);
+        while(wait(NULL)>0);
+        for(auto p: pipedInput) free(p);
+      }
+    }
+
+  }
+}
+
