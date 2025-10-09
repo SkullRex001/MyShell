@@ -181,31 +181,6 @@ std::vector<std::string> tokenize(const std::string input)
 
 
 
-std::vector<char *> extractPipedInput(std::string input){
-  std::vector<char *> tok;
-  char * strcp = strdup(input.c_str());
-  char *val = strtok(strcp , "|");
-  while(val){
-    std::string s(val);
-    auto pos = s.find_first_not_of(" ");
-    if(pos != std::string::npos) s.erase(0, pos);
-    tok.push_back(strdup(s.c_str()));
-    val = strtok(NULL , "|");
-  }
-  free(strcp);
-  return tok;
-}
-
-std::vector<char*> splitCommand(char * cmd){
-  std::stringstream ss(cmd);
-  std::string word;
-  std::vector<char*> args;
-  while (ss >> word) args.push_back(strdup(word.c_str()));
-  args.push_back(nullptr);
-  return args;
-}
-
-
 std::string trim(const std::string &str)
 {
   size_t start = 0;
@@ -222,3 +197,29 @@ std::string trim(const std::string &str)
 
   return str.substr(start, end - start);
 }
+
+
+std::vector<char *> extractPipedInput(std::string input){
+  std::vector<char *> tok;
+  char * strcp = strdup(input.c_str());
+  char *val = strtok(strcp , "|");
+  while(val){
+    std::string s(val);
+   // auto pos = s.find_first_not_of(" ");
+   // if(pos != std::string::npos) s.erase(0, pos);
+    tok.push_back(strdup(trim(s).c_str()));
+    val = strtok(NULL , "|");
+  }
+  free(strcp);
+  return tok;
+}
+
+std::vector<char*> splitCommand(char * cmd){
+  std::stringstream ss(cmd);
+  std::string word;
+  std::vector<char*> args;
+  while (ss >> word) args.push_back(strdup(word.c_str()));
+  args.push_back(nullptr);
+  return args;
+}
+

@@ -4,6 +4,6 @@
 
 void handleRunningSingleExecutable(std::vector<std::string> words);
 
-void hadndleSinglePipe(std::string input , std::unordered_map<std::string , std::string> &pathMap , std::set<std::string> commands);
+void handleSinglePipe(std::string input , std::unordered_map<std::string , std::string> &pathMap , std::set<std::string> commands);
 
 void handleDoublePipe(std::string input , std::unordered_map<std::string , std::string> &pathMap , std::set<std::string> commands);

@@ -640,10 +640,11 @@ int main()
         */
 
         if(pipeCount==1){
-        hadndleSinglePipe(input , pathMap , commands);
+        handleSinglePipe(input , pathMap , commands);
       }else{
         handleDoublePipe(input , pathMap , commands);
       }
+
         
     } 
     else if (words[0] == "type")

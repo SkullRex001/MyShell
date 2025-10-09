@@ -11,9 +11,9 @@
 #include <cstdlib>
 #include <unordered_map>
 
+//Known bugs :- 1. grep does not work with " "
 
-
-std::set<std::string> builtInCommands = {"echo",  "type", "cd", "cat"};
+std::set<std::string> builtInCommands = {"echo",  "type", "cd"};
 
 
 /*
@@ -59,15 +59,15 @@ void handleRunningSingleExecutable(std::vector<std::string> words){
 
 
 
-void hadndleSinglePipe(std::string input , std::unordered_map<std::string , std::string> &pathMap , std::set<std::string> commands){
+void handleSinglePipe(std::string input , std::unordered_map<std::string , std::string> &pathMap , std::set<std::string> commands){
   std::vector<char *> pipedInput = extractPipedInput(input);
   if(pipedInput.size() !=2) {
-    std::cout << "This function hadndleSinglePipe";
+    std::cerr << "This function hadndleSinglePipe";
     return;
   }
   int fd[2];
   if(pipe(fd)==-1){
-    std::cout << "Error in pipe";
+    std::cerr << "Error in pipe";
     return;
   }
   int pid1 = fork();
@@ -76,11 +76,11 @@ void hadndleSinglePipe(std::string input , std::unordered_map<std::string , std:
     close(fd[0]);
     dup2(fd[1] , STDOUT_FILENO);
     close(fd[1]);
-    auto args1 = splitCommand(pipedInput[0]);
-    auto it = builtInCommands.find(args1[0]);
+    std::vector<char*> args1 = splitCommand(pipedInput[0]);
+    auto it = builtInCommands.find(std::string(args1[0]));
     if(it == builtInCommands.end()){
     execvp(args1[0] , args1.data());
-    std::cout << "Error\n";
+    std::cerr << "Error\n";
     exit(1);
     }
     else{
@@ -88,40 +88,38 @@ void hadndleSinglePipe(std::string input , std::unordered_map<std::string , std:
       if(strcmp(args1[0], "echo") == 0) handleEchoBuiltin(inputAfterPipe);
       else if(strcmp(args1[0], "type") == 0) handleTypeBuiltin(inputAfterPipe , pathMap , commands);
       else if(strcmp(args1[0], "cd") == 0) handleChangeDirectoryBuiltin(inputAfterPipe);
+      else std::cerr <<  args1[0]<<  ": Not found\n";
       exit(0);
     }
-  }else{
+  }
+
     int pid2 = fork();
     if(pid2 == 0){
       //second child
       close(fd[1]);
       dup2(fd[0] , STDIN_FILENO);
       close(fd[0]);
-      auto args2 = splitCommand(pipedInput[1]);
-      auto it = builtInCommands.find(args2[0]);
+      std::vector<char*> args2 = splitCommand(pipedInput[1]);
+      auto it = builtInCommands.find(std::string(args2[0]));
       if(it == builtInCommands.end()){
       execvp(args2[0] , args2.data());
-      std::cout << "Error\n";
+      std::cerr << "Error\n";
       exit(1);
-    }
-    else{
-
+     }else{
       std::string inputAfterPipe(pipedInput[1]);
       if(strcmp(args2[0], "echo") == 0) handleEchoBuiltin(inputAfterPipe);
       else if(strcmp(args2[0], "type") == 0) handleTypeBuiltin(inputAfterPipe , pathMap , commands);
       else if(strcmp(args2[0], "cd") == 0) handleChangeDirectoryBuiltin(inputAfterPipe);
+      else std::cerr <<  args2[0]<<  ": Not found\n";
       exit(0);
+      }
     }
-    }else{
       //parent
       close(fd[0]);
       close(fd[1]);
       while(wait(NULL)>0);
       for(auto p: pipedInput) free(p);
-
-    }
-      
-  }  
+  
 }
 
 
@@ -157,6 +155,7 @@ void handleDoublePipe(std::string input , std::unordered_map<std::string , std::
       if(strcmp(args1[0], "echo") == 0) handleEchoBuiltin(inputAfterPipe);
       else if(strcmp(args1[0], "type") == 0) handleTypeBuiltin(inputAfterPipe , pathMap , commands);
       else if(strcmp(args1[0], "cd") == 0) handleChangeDirectoryBuiltin(inputAfterPipe);
+      else std::cerr <<  args1[0]<<  ": Not found\n";
       exit(0);
     }
   }else{
@@ -181,6 +180,7 @@ void handleDoublePipe(std::string input , std::unordered_map<std::string , std::
       if(strcmp(args2[0], "echo") == 0) handleEchoBuiltin(inputAfterPipe);
       else if(strcmp(args2[0], "type") == 0) handleTypeBuiltin(inputAfterPipe , pathMap , commands);
       else if(strcmp(args2[0], "cd") == 0) handleChangeDirectoryBuiltin(inputAfterPipe);
+      else std::cerr <<  args2[0]<<  ": Not found\n";
       exit(0);
     }
     }else{
@@ -199,11 +199,11 @@ void handleDoublePipe(std::string input , std::unordered_map<std::string , std::
       exit(1);
     }
     else{
-
       std::string inputAfterPipe(pipedInput[2]);
       if(strcmp(args3[0], "echo") == 0) handleEchoBuiltin(inputAfterPipe);
       else if(strcmp(args3[0], "type") == 0) handleTypeBuiltin(inputAfterPipe , pathMap , commands);
       else if(strcmp(args3[0], "cd") == 0) handleChangeDirectoryBuiltin(inputAfterPipe);
+      else std::cerr <<  args3[0]<<  ": Not found\n";
       exit(0);
     }
       }else{
