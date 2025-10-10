@@ -7,7 +7,7 @@
 #include "utils.h"
 #include <iostream>
 #include <set>
-
+#include <limits.h>
 void handleTypeBuiltin(std::string &inputString , std::unordered_map<std::string , std::string> pathMap , std::set<std::string> commands){
 
       std::string str = extractArgumentString(inputString);
@@ -64,4 +64,14 @@ void handleChangeDirectoryBuiltin(std::string &inputString){
       }
 
 
+}
+
+
+void handlePwdBuiltin(){
+  char cwd[PATH_MAX];
+  if(getcwd(cwd , sizeof(cwd))!= nullptr){
+    std::cout << cwd << '\n';
+  }else{
+    std::cerr << "pwd : error" << '\n';
+  }
 }

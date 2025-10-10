@@ -5,3 +5,6 @@ void handleTypeBuiltin(std::string &inputString, std::unordered_map<std::string,
 void handleEchoBuiltin(std::string &inputString);
 
 void handleChangeDirectoryBuiltin(std::string &inputString);
+
+
+void handlePwdBuiltin();
