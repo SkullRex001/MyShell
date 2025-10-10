@@ -445,7 +445,7 @@ int main()
   std::unordered_map<std::string, std::string> pathMap = printPath(path);
   std::set<std::string> commands;
 
-  commands.insert({"echo", "exit", "type", "pwd", "cd", "cat"});
+  commands.insert({"echo", "exit", "type", "pwd", "cd"});
 
   make_auto_complete_commnad_vector(pathMap, commands);
 
@@ -708,6 +708,9 @@ int main()
       */
 
       handleChangeDirectoryBuiltin(input);
+    }
+    else if (words[0] == "pwd") {
+      handlePwdBuiltin();
     }
     // else if (words[0] == "cat")
     // {

@@ -13,7 +13,7 @@
 
 //Known bugs :- 1. grep does not work with " "
 
-std::set<std::string> builtInCommands = {"echo",  "type", "cd"};
+std::set<std::string> builtInCommands = {"echo",  "type", "cd" , "pwd"};
 
 
 /*
@@ -88,6 +88,7 @@ void handleSinglePipe(std::string input , std::unordered_map<std::string , std::
       if(strcmp(args1[0], "echo") == 0) handleEchoBuiltin(inputAfterPipe);
       else if(strcmp(args1[0], "type") == 0) handleTypeBuiltin(inputAfterPipe , pathMap , commands);
       else if(strcmp(args1[0], "cd") == 0) handleChangeDirectoryBuiltin(inputAfterPipe);
+      else if(strcmp(args1[0], "pwd") == 0) handlePwdBuiltin();
       else std::cerr <<  args1[0]<<  ": Not found\n";
       exit(0);
     }
@@ -110,6 +111,7 @@ void handleSinglePipe(std::string input , std::unordered_map<std::string , std::
       if(strcmp(args2[0], "echo") == 0) handleEchoBuiltin(inputAfterPipe);
       else if(strcmp(args2[0], "type") == 0) handleTypeBuiltin(inputAfterPipe , pathMap , commands);
       else if(strcmp(args2[0], "cd") == 0) handleChangeDirectoryBuiltin(inputAfterPipe);
+      else if(strcmp(args2[0], "pwd") == 0) handlePwdBuiltin();
       else std::cerr <<  args2[0]<<  ": Not found\n";
       exit(0);
       }
@@ -155,6 +157,7 @@ void handleDoublePipe(std::string input , std::unordered_map<std::string , std::
       if(strcmp(args1[0], "echo") == 0) handleEchoBuiltin(inputAfterPipe);
       else if(strcmp(args1[0], "type") == 0) handleTypeBuiltin(inputAfterPipe , pathMap , commands);
       else if(strcmp(args1[0], "cd") == 0) handleChangeDirectoryBuiltin(inputAfterPipe);
+      else if(strcmp(args1[0], "pwd") == 0) handlePwdBuiltin();
       else std::cerr <<  args1[0]<<  ": Not found\n";
       exit(0);
     }
@@ -180,6 +183,7 @@ void handleDoublePipe(std::string input , std::unordered_map<std::string , std::
       if(strcmp(args2[0], "echo") == 0) handleEchoBuiltin(inputAfterPipe);
       else if(strcmp(args2[0], "type") == 0) handleTypeBuiltin(inputAfterPipe , pathMap , commands);
       else if(strcmp(args2[0], "cd") == 0) handleChangeDirectoryBuiltin(inputAfterPipe);
+      else if(strcmp(args2[0], "pwd") == 0) handlePwdBuiltin();
       else std::cerr <<  args2[0]<<  ": Not found\n";
       exit(0);
     }
@@ -203,6 +207,7 @@ void handleDoublePipe(std::string input , std::unordered_map<std::string , std::
       if(strcmp(args3[0], "echo") == 0) handleEchoBuiltin(inputAfterPipe);
       else if(strcmp(args3[0], "type") == 0) handleTypeBuiltin(inputAfterPipe , pathMap , commands);
       else if(strcmp(args3[0], "cd") == 0) handleChangeDirectoryBuiltin(inputAfterPipe);
+      else if(strcmp(args3[0], "pwd") == 0) handlePwdBuiltin();
       else std::cerr <<  args3[0]<<  ": Not found\n";
       exit(0);
     }
