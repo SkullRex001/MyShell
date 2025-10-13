@@ -222,3 +222,43 @@ void handleDoublePipe(std::string input , std::unordered_map<std::string , std::
   }
 }
 
+
+
+void handleNPipe(std::string input){
+  std::vector<char *> pipedInput = extractPipedInput2(input);
+  int numberOfPipes = pipedInput.size()-1;
+  if(!numberOfPipes){
+    cout << "No pipe given input";
+    return;
+  }
+  int fd[2][numberOfPipes];
+  for(int i = 0 ; i < numberOfPipes ; i++){
+    if(pipe(fd[i])==-1){
+      std::cerr << "Error in pipe";
+      return;
+    }
+  }
+
+  for(int i = 0 ; i <= numberOfPipes ; i++){
+    int pid = fork();
+    if(pid==0){
+      //child
+      if(i==0){
+        //even
+        dup2(fd[i][1] , STDOUT_FILENO);
+        for(int i = 1 ; i < numberOfPipes ; i++){
+          close(fd[i][0]);close(fd[i][1]);
+        }
+        //will complete the logic tomorrow
+
+      }else if(i == numberOfPipes){
+
+      }else{
+
+      }
+      
+    }
+
+  }
+}
+
